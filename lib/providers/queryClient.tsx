@@ -1,13 +1,30 @@
-import React, { ReactNode } from 'react';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/lib/config/queryClient';
+// lib/providers.tsx
+'use client';
 
-export function QueryProvider({ children }: { children: ReactNode }) {
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider } from 'jotai';
+import { type ReactNode } from 'react';
+import { useState } from 'react';
+
+interface ProvidersProps {
+  children: ReactNode;
+}
+
+export function Providers({ children }: ProvidersProps) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000, // 5 минут
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <Provider>
+        {children}
+      </Provider>
     </QueryClientProvider>
   );
-} 
+}
