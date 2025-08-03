@@ -1,20 +1,20 @@
 
-'use client'
+// 'use client'
 
-import { Provider } from 'jotai'
-import { type ReactNode } from 'react'
-import { QueryProvider } from './queryClient'
+// import { Provider } from 'jotai'
+// import { type ReactNode } from 'react'
+// import { Providers } from './queryClient'
 
-interface ProvidersProps {
-  children: ReactNode
-}
+// interface ProvidersProps {
+//   children: ReactNode
+// }
 
-export function Providers({ children }: ProvidersProps) {
-  return (
-    <Provider>
-      <QueryProvider>
-        {children}
-      </QueryProvider>
-    </Provider>
-  )
-} 
+// export function Providers({ children }: ProvidersProps) {
+//   return (
+//     <Provider>
+//       <Providers>
+//         {children}
+//       </Providers>
+//     </Provider>
+//   )
+// } 
