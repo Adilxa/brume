@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Disable image optimization to fix sharp issues
+  // Completely disable image optimization to fix sharp issues
   images: {
     unoptimized: true,
+    disableStaticImages: true,
   },
 
   // Production optimizations
@@ -20,6 +21,18 @@ const nextConfig: NextConfig = {
 
   // Compression
   compress: true,
+
+  // Webpack configuration to exclude sharp
+  webpack: (config, { isServer }) => {
+    // Exclude sharp from client-side bundle
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        sharp: false,
+      };
+    }
+    return config;
+  },
 
   // Disable problematic optimizations
   experimental: {
