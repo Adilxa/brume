@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable image optimization to avoid sharp issues
+  // Enable static export to bypass image optimization
+  output: 'export',
+  trailingSlash: true,
   images: {
     unoptimized: true,
   },
