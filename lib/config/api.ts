@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://brume.kg:5000';
 const API_VERSION = "/api/v1";
 
 
@@ -40,11 +40,11 @@ const errorInterceptor = (error: AxiosError) => {
   if (error.response?.status === 500) {
     console.error('Server error occurred');
   }
-  
+
   if (error.response?.status === 0 || error.code === 'ERR_NETWORK') {
     console.error('Network error - server may be down or CORS issue');
   }
-  
+
   return Promise.reject(error);
 };
 
