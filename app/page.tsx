@@ -1,8 +1,6 @@
 // app/page.tsx (Server Component)
 import { SliderSection } from '@/components/slider-section';
 import { FormSection } from '@/components/form-section';
-import Image_1 from ".././public/images/image_1.png";
-import Image_2 from ".././public/images/image_2.png"
 
 // Типы данных
 export interface SlideData {
@@ -16,17 +14,17 @@ const slidesData: SlideData[] = [
   {
     id: 1,
     title: "Соберите 5 печатей и получите 6-ой кофе в подарок",
-    image: Image_1,
+    image: "/images/image_1.png",
   },
   {
     id: 2,
     title: "Собирайте печати прямо в приложении",
-    image: Image_2,
+    image: "/images/image_2.png",
   },
   {
     id: 3,
     title: "Скидка 20% на все напитки по выходным",
-    image: Image_2,
+    image: "/images/image_2.png",
   }
 ];
 
