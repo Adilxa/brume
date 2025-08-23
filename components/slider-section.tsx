@@ -4,7 +4,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { SlideData } from '@/app/page';
-import Image from 'next/image';
 
 // Context для слайдера
 interface SliderContextType {
@@ -153,7 +152,7 @@ function CoffeeSlider({ slides }: { slides: SlideData[] }) {
                             className="relative"
                             style={{ marginBottom: index === 0 ? '-50px' : '0px' }}
                         >
-                            <Image
+                            <img
                                 src={slide.image}
                                 alt='coffee'
                                 width={430}

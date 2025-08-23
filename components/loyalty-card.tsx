@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
-import Image_1 from ".././public/images/cofee_icons/image_1.svg"
-import Image_2 from ".././public/images/cofee_icons/image_2.svg"
-import Image_3 from ".././public/images/cofee_icons/image_3.svg"
-import Image_4 from ".././public/images/cofee_icons/image_4.svg"
-import Image_5 from ".././public/images/cofee_icons/image_5.svg"
-import Image_6 from ".././public/images/cofee_icons/image_6.png"
+
 
 interface Cup {
     id: number;
@@ -39,12 +33,12 @@ interface LoyaltyCardProps {
 
 export function LoyaltyCard({ userData, onClaimFreeCoffee }: LoyaltyCardProps) {
     const cupImages = [
-        Image_1,
-        Image_2,
-        Image_3,
-        Image_4,
-        Image_5,
-        Image_6,
+        "/images/cofee_icons/image_1.svg",
+        "/images/cofee_icons/image_2.svg",
+        "/images/cofee_icons/image_3.svg",
+        "/images/cofee_icons/image_4.svg",
+        "/images/cofee_icons/image_5.svg",
+        "/images/cofee_icons/image_6.png",
     ];
 
     // Если нет карточек, создаем пустую "виртуальную" карточку для отображения
@@ -224,7 +218,7 @@ export function LoyaltyCard({ userData, onClaimFreeCoffee }: LoyaltyCardProps) {
                                         }}
                                     >
                                         {index < card.cupsCount && (
-                                            <Image
+                                            <img
                                                 src={cupImages[index]}
                                                 alt={`Cup ${index + 1}`}
                                                 width={78}

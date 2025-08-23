@@ -3,8 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { QrCode } from 'lucide-react';
-import QrIcon from ".././public/images/qr_icon.png";
-import Image from 'next/image';
+
 import QRCode from 'qrcode';
 
 export function QRButton() {
@@ -52,7 +51,7 @@ export function QRButton() {
                     onClick={openQRDrawer}
                     className="w-[80px] h-[80px] rounded-full border-[1px] border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors shadow-2xl"
                 >
-                    <Image src={QrIcon} alt='icon' style={{ width: '30px', height: '30px' }} />
+                    <img src="/images/qr_icon.png" alt='icon' style={{ width: '30px', height: '30px' }} />
                 </button>
             </div>
 
