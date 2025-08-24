@@ -2,6 +2,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { authAPI, userAPI } from '../api/api';
+import { toast } from 'react-toastify';
 
 export const useSendOTP = () => {
     const router = useRouter();
@@ -36,21 +37,22 @@ export const useVerifyOTP = () => {
                 localStorage.setItem('userId', data.user.id.toString());
             }
             router.push('/dashboard');
+            toast.success("Вы успешно вошли в аккаунт!")
         },
         onError: (error) => {
             console.error('Error verifying OTP:', error);
-            // Показать ошибку пользователю
+            toast.error("Неправильный код");
         },
     });
 };
 
 // Новый хук для получения данных пользователя
 export const useUserData = (userId: string | null) => {
-  return useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => userAPI.getUserData(userId!),
-    enabled: !!userId, // Запрос выполняется только если есть userId
-    staleTime: 5 * 60 * 1000, // 5 минут
-    retry: 3,
-  });
+    return useQuery({
+        queryKey: ['user', userId],
+        queryFn: () => userAPI.getUserData(userId!),
+        enabled: !!userId, // Запрос выполняется только если есть userId
+        staleTime: 5 * 60 * 1000, // 5 минут
+        retry: 3,
+    });
 };

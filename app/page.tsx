@@ -18,12 +18,12 @@ const slidesData: SlideData[] = [
   },
   {
     id: 2,
-    title: "Собирайте печати прямо в приложении",
-    image: "/images/image_2.png",
+    title: "Авторские напитки - разнообразие каждый день",
+    image: "/images/image_3.png",
   },
   {
     id: 3,
-    title: "Скидка 20% на все напитки по выходным",
+    title: "Собирайте печати прямо в приложении",
     image: "/images/image_2.png",
   }
 ];

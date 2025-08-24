@@ -150,7 +150,10 @@ function CoffeeSlider({ slides }: { slides: SlideData[] }) {
                         {/* Картинка фиксированного размера */}
                         <div
                             className="relative"
-                            style={{ marginBottom: index === 0 ? '-50px' : '0px' }}
+                            style={{
+                                marginBottom: index === 0 ? '-50px' : '0px',
+                                marginRight: index === 1 ? '-35px' : '0px'
+                            }}
                         >
                             <img
                                 src={slide.image}

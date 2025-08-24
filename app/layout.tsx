@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers/queryClient";
+import { ToastContainer } from 'react-toastify';
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -26,6 +27,7 @@ export default function RootLayout({
         className={`${roboto.variable} ${roboto.className} antialiased`}
       >
         <Providers>
+          <ToastContainer />
           {children}
         </Providers>
       </body>

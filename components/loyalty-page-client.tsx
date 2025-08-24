@@ -5,6 +5,8 @@ import { useUserData } from '@/lib/hooks/use-auth';
 import { LoyaltyCard } from '@/components/loyalty-card';
 import { InfoSection } from '@/components/info-section';
 import { QRButton } from '@/components/qr-button';
+import Image from 'next/image';
+import Link from 'next/link';
 
 export function LoyaltyPageClient() {
     const [userId, setUserId] = useState<string | null>(null);
@@ -54,7 +56,15 @@ export function LoyaltyPageClient() {
 
     return (
         <div className="min-h-screen bg-white">
-            <header className="flex justify-center items-center px-6 py-6">
+            <header className="flex justify-between items-center px-6 py-6">
+                <Link href={"/profile"}>
+                    <Image
+                        src={'/images/User.svg'}
+                        alt='profile'
+                        width={26}
+                        height={26}
+                    />
+                </Link>
                 <div className="text-center">
                     <h1
                         className="font-bold"
@@ -74,6 +84,14 @@ export function LoyaltyPageClient() {
                         coffee
                     </p>
                 </div>
+                <Link href={"/notification"}>
+                    <Image
+                        src={'/images/Bell.svg'}
+                        alt='notification'
+                        width={26}
+                        height={26}
+                    />
+                </Link>
             </header>
 
             {/* Основной контент */}
