@@ -6,8 +6,9 @@ import { X } from 'lucide-react';
 export function InfoSection() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    const openDrawer = () => setIsDrawerOpen(true);
+
     const closeDrawer = () => setIsDrawerOpen(false);
+    const openDrawer = () => setIsDrawerOpen(true);
 
     return (
         <>
