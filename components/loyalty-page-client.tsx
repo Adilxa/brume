@@ -6,6 +6,7 @@ import { LoyaltyCard } from '@/components/loyalty-card';
 import { InfoSection } from '@/components/info-section';
 import { QRButton } from '@/components/qr-button';
 import Brume from '../public/images/Brume.svg';
+import Image from 'next/image';
 
 
 export function LoyaltyPageClient() {
@@ -66,7 +67,7 @@ export function LoyaltyPageClient() {
                     />
                 </Link> */}
                 <div className="text-center">
-                    <img src={Brume.src} alt="logo" className='mb-1' />
+                    <Image src={Brume} alt="logo" className='mb-1' />
                     <p
                         className="text-xs text-gray-500"
                         style={{ fontFamily: 'Roboto, sans-serif', fontSize: "12px" }}

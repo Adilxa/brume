@@ -7,6 +7,7 @@ import Brume from '../public/images/Brume.svg';
 
 import QRCode from 'qrcode';
 import { useQueryClient } from '@tanstack/react-query';
+import Image from 'next/image';
 
 export function QRButton() {
     const [isQRDrawerOpen, setIsQRDrawerOpen] = useState(false);
@@ -122,7 +123,7 @@ export function QRButton() {
                                     />
                                     {/* Логотип в центре QR кода */}
                                     <div className='bg-white p-2 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
-                                        <img src={Brume.src} alt='logo' className='' />
+                                        <Image src={Brume} alt='logo' className='' />
                                     </div>
                                 </div>
                             ) : userId ? (
