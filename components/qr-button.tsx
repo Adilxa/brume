@@ -3,8 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import { QrCode } from 'lucide-react';
+import Brume from '../public/images/Brume.svg';
 
 import QRCode from 'qrcode';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function QRButton() {
     const [isQRDrawerOpen, setIsQRDrawerOpen] = useState(false);
@@ -22,16 +24,20 @@ export function QRButton() {
         }
     }, [userId]);
 
+
+    const queryClient = useQueryClient();
+
+
     const generateQRCode = async (id: string) => {
         try {
             const dataUrl = await QRCode.toDataURL(id, {
-                width: 160,
+                width: 200,
                 margin: 1,
                 color: {
                     dark: '#000000',
                     light: '#FFFFFF'
                 },
-                errorCorrectionLevel: 'M'
+                errorCorrectionLevel: 'H' // Высокий уровень коррекции ошибок для логотипа
             });
 
             setQrCodeDataUrl(dataUrl);
@@ -41,7 +47,10 @@ export function QRButton() {
     };
 
     const openQRDrawer = () => setIsQRDrawerOpen(true);
-    const closeQRDrawer = () => setIsQRDrawerOpen(false);
+    const closeQRDrawer = () => {
+        setIsQRDrawerOpen(false)
+        queryClient.invalidateQueries({ queryKey: ['user'] })
+    }
 
     return (
         <>
@@ -55,10 +64,11 @@ export function QRButton() {
                 </button>
             </div>
 
-            {/* Overlay для QR drawer */}
+            {/* Overlay для QR drawer - полупрозрачный */}
             {isQRDrawerOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                    className="fixed inset-0 z-40"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
                     onClick={closeQRDrawer}
                 />
             )}
@@ -104,11 +114,17 @@ export function QRButton() {
                             style={{ backgroundColor: '#FFFFFF' }}
                         >
                             {qrCodeDataUrl ? (
-                                <img
-                                    src={qrCodeDataUrl}
-                                    alt="QR Code"
-                                    className="w-full h-full object-contain"
-                                />
+                                <div className="relative w-full h-full">
+                                    <img
+                                        src={qrCodeDataUrl}
+                                        alt="QR Code"
+                                        className="w-full h-full object-contain"
+                                    />
+                                    {/* Логотип в центре QR кода */}
+                                    <div className='bg-white p-2 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
+                                        <img src={Brume.src} alt='logo' className='' />
+                                    </div>
+                                </div>
                             ) : userId ? (
                                 <div className="text-gray-500 text-sm">
                                     Генерация QR кода...

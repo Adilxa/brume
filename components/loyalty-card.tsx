@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface Cup {
     id: number;
@@ -56,238 +55,338 @@ export function LoyaltyCard({ userData, onClaimFreeCoffee }: LoyaltyCardProps) {
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
+    const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+    const [currentTranslate, setCurrentTranslate] = useState(0);
+    const [prevTranslate, setPrevTranslate] = useState(0);
+    const [animationId, setAnimationId] = useState<number>(0);
     const sliderRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    // Обработчики для мыши
-    const handleMouseDown = (e: React.MouseEvent) => {
-        if (!sliderRef.current) return;
+    // Получаем ширину слайда
+    const getSlideWidth = useCallback(() => {
+        return containerRef.current?.offsetWidth || 0;
+    }, []);
+
+    // Анимация слайдера
+    const animation = useCallback(() => {
+        if (sliderRef.current) {
+            sliderRef.current.style.transform = `translateX(${currentTranslate}px)`;
+        }
+        if (isDragging) {
+            const id = requestAnimationFrame(animation);
+            setAnimationId(id);
+        }
+    }, [currentTranslate, isDragging]);
+
+    // Установка позиции слайдера по индексу
+    const setSliderPosition = useCallback(() => {
+        const slideWidth = getSlideWidth();
+        const translate = currentSlide * -slideWidth;
+        setCurrentTranslate(translate);
+        setPrevTranslate(translate);
+        if (sliderRef.current) {
+            sliderRef.current.style.transform = `translateX(${translate}px)`;
+        }
+    }, [currentSlide, getSlideWidth]);
+
+    // Получение позиции из события
+    const getPositionX = (event: React.TouchEvent | React.MouseEvent) => {
+        if ('touches' in event) {
+            return event.touches[0].clientX;
+        }
+        return event.clientX;
+    };
+
+    const getPositionY = (event: React.TouchEvent | React.MouseEvent) => {
+        if ('touches' in event) {
+            return event.touches[0].clientY;
+        }
+        return event.clientY;
+    };
+
+    // Начало перетаскивания
+    const dragStart = (event: React.TouchEvent | React.MouseEvent) => {
+        if ('touches' in event && event.touches.length > 1) return;
+
+        setStartPos({
+            x: getPositionX(event),
+            y: getPositionY(event)
+        });
         setIsDragging(true);
-        setStartX(e.pageX - sliderRef.current.offsetLeft);
-        setScrollLeft(sliderRef.current.scrollLeft);
+
+        if (sliderRef.current) {
+            sliderRef.current.style.transition = 'none';
+        }
+
+        const id = requestAnimationFrame(animation);
+        setAnimationId(id);
+    };
+
+    // Процесс перетаскивания
+    const dragMove = (event: React.TouchEvent | React.MouseEvent) => {
+        if (!isDragging) return;
+
+        event.preventDefault();
+
+        const currentX = getPositionX(event);
+        const currentY = getPositionY(event);
+        const diffX = currentX - startPos.x;
+        const diffY = Math.abs(currentY - startPos.y);
+
+        // Если вертикальное движение больше горизонтального, не обрабатываем
+        if (diffY > Math.abs(diffX) * 1.5) {
+            return;
+        }
+
+        const slideWidth = getSlideWidth();
+        const maxTranslate = -(cardsToDisplay.length - 1) * slideWidth;
+
+        let newTranslate = prevTranslate + diffX;
+
+        // Ограничиваем перетаскивание с rubber band эффектом
+        if (newTranslate > 0) {
+            newTranslate = diffX * 0.3;
+        } else if (newTranslate < maxTranslate) {
+            newTranslate = maxTranslate + (diffX - (maxTranslate - prevTranslate)) * 0.3;
+        }
+
+        setCurrentTranslate(newTranslate);
+    };
+
+    // Конец перетаскивания
+    const dragEnd = () => {
+        if (!isDragging) return;
+
+        setIsDragging(false);
+        cancelAnimationFrame(animationId);
+
+        const slideWidth = getSlideWidth();
+        const movedBy = currentTranslate - prevTranslate;
+
+        // Определяем направление свайпа
+        if (Math.abs(movedBy) > slideWidth * 0.25) {
+            if (movedBy < 0 && currentSlide < cardsToDisplay.length - 1) {
+                setCurrentSlide(prev => prev + 1);
+            } else if (movedBy > 0 && currentSlide > 0) {
+                setCurrentSlide(prev => prev - 1);
+            }
+        }
+
+        // Включаем transition для плавной анимации
+        if (sliderRef.current) {
+            sliderRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        }
+    };
+
+    // Переход к конкретному слайду
+    const goToSlide = (index: number) => {
+        if (index < 0 || index >= cardsToDisplay.length) return;
+        setCurrentSlide(index);
+    };
+
+    // Обработчики событий мыши
+    const handleMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault();
+        dragStart(e);
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging || !sliderRef.current) return;
-        e.preventDefault();
-        const x = e.pageX - sliderRef.current.offsetLeft;
-        const walk = (x - startX) * 2;
-        sliderRef.current.scrollLeft = scrollLeft - walk;
+        dragMove(e);
     };
 
     const handleMouseUp = () => {
-        if (!sliderRef.current || !isDragging) return;
-        setIsDragging(false);
-
-        // Определяем текущий слайд после перетаскивания
-        const cardWidth = sliderRef.current.offsetWidth;
-        const newSlide = Math.round(sliderRef.current.scrollLeft / cardWidth);
-        setCurrentSlide(Math.max(0, Math.min(newSlide, cardsToDisplay.length - 1)));
-
-        // Плавно перемещаем к ближайшему слайду
-        sliderRef.current.scrollTo({
-            left: newSlide * cardWidth,
-            behavior: 'smooth'
-        });
+        dragEnd();
     };
 
-    // Обработчики для touch событий
+    const handleMouseLeave = () => {
+        dragEnd();
+    };
+
+    // Обработчики touch событий
     const handleTouchStart = (e: React.TouchEvent) => {
-        if (!sliderRef.current) return;
-        setIsDragging(true);
-        setStartX(e.touches[0].pageX - sliderRef.current.offsetLeft);
-        setScrollLeft(sliderRef.current.scrollLeft);
+        dragStart(e);
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
-        if (!isDragging || !sliderRef.current) return;
-        const x = e.touches[0].pageX - sliderRef.current.offsetLeft;
-        const walk = (x - startX) * 2;
-        sliderRef.current.scrollLeft = scrollLeft - walk;
+        dragMove(e);
     };
 
     const handleTouchEnd = () => {
-        if (!sliderRef.current || !isDragging) return;
-        setIsDragging(false);
-
-        // Определяем текущий слайд после свайпа
-        const cardWidth = sliderRef.current.offsetWidth;
-        const newSlide = Math.round(sliderRef.current.scrollLeft / cardWidth);
-        setCurrentSlide(Math.max(0, Math.min(newSlide, cardsToDisplay.length - 1)));
-
-        // Плавно перемещаем к ближайшему слайду
-        sliderRef.current.scrollTo({
-            left: newSlide * cardWidth,
-            behavior: 'smooth'
-        });
+        dragEnd();
     };
 
-    // Переход к конкретному слайду по клику на индикатор
-    const goToSlide = (index: number) => {
-        if (!sliderRef.current) return;
-        setCurrentSlide(index);
-        const cardWidth = sliderRef.current.offsetWidth;
-        sliderRef.current.scrollTo({
-            left: index * cardWidth,
-            behavior: 'smooth'
-        });
-    };
-
-    // Обработчик скролла для синхронизации индикаторов
-    const handleScroll = () => {
-        if (!sliderRef.current || isDragging) return;
-        const cardWidth = sliderRef.current.offsetWidth;
-        const newSlide = Math.round(sliderRef.current.scrollLeft / cardWidth);
-        setCurrentSlide(newSlide);
-    };
-
+    // Эффект для установки позиции при изменении текущего слайда
     useEffect(() => {
-        const slider = sliderRef.current;
-        if (slider) {
-            slider.addEventListener('scroll', handleScroll);
-            return () => slider.removeEventListener('scroll', handleScroll);
-        }
-    }, []);
+        setSliderPosition();
+    }, [currentSlide, setSliderPosition]);
+
+    // Эффект для пересчета позиции при изменении размера окна
+    useEffect(() => {
+        const handleResize = () => {
+            setSliderPosition();
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [setSliderPosition]);
+
+    // Предотвращаем выделение текста при перетаскивании
+    useEffect(() => {
+        const preventSelect = (e: Event) => {
+            if (isDragging) {
+                e.preventDefault();
+            }
+        };
+
+        document.addEventListener('selectstart', preventSelect);
+        return () => document.removeEventListener('selectstart', preventSelect);
+    }, [isDragging]);
 
     return (
-        <div className="w-full">
+        <div className="w-full" ref={containerRef}>
             {/* Слайдер карточек */}
-            <div
-                ref={sliderRef}
-                className="flex overflow-x-scroll scrollbar-hide snap-x snap-mandatory"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-            >
-                {cardsToDisplay.map((card, cardIndex) => (
-                    <div
-                        key={card.id || cardIndex}
-                        className="flex-shrink-0 w-full snap-center"
-                    >
+            <div className="overflow-hidden">
+                <div
+                    ref={sliderRef}
+                    className="flex will-change-transform"
+                    style={{
+                        transform: `translateX(${currentTranslate}px)`,
+                        transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    }}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseLeave}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {cardsToDisplay.map((card, cardIndex) => (
                         <div
-                            className={`rounded-3xl p-8 mx-4 relative`}
-                            style={{
-                                backgroundColor: card.isUsed ? '#4a5568' : '#012248',
-                                opacity: card.isUsed ? 0.7 : 1
-                            }}
+                            key={card.id || cardIndex}
+                            className="flex-shrink-0 w-full"
+                            style={{ userSelect: 'none' }}
                         >
-                            {/* Статус карточки */}
-                            <div className="flex justify-between items-center mb-4">
-                                <div className="flex items-center gap-2">
-                                    {card.isActive && (
-                                        <span className="bg-green-400 text-black px-2 py-1 rounded-full text-xs font-semibold">
-                                            Активная
-                                        </span>
-                                    )}
-                                    {card.isComplete && !card.isUsed && (
-                                        <span className="bg-green-400 text-black px-2 py-1 rounded-full text-xs font-semibold">
-                                            Готова к обмену
-                                        </span>
-                                    )}
-                                    {card.isUsed && (
-                                        <span className="bg-gray-400 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                                            Использована
+                            <div
+                                className="rounded-3xl p-8 mx-4 relative"
+                                style={{
+                                    backgroundColor: card.isUsed ? '#4a5568' : '#012248',
+                                    opacity: card.isUsed ? 0.7 : 1
+                                }}
+                            >
+                                {/* Статус карточки */}
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex items-center gap-2">
+                                        {card.isActive && (
+                                            <span className="bg-green-400 text-black px-2 py-1 rounded-full text-xs font-semibold">
+                                                Активная
+                                            </span>
+                                        )}
+                                        {card.isComplete && !card.isUsed && (
+                                            <span className="bg-green-400 text-black px-2 py-1 rounded-full text-xs font-semibold">
+                                                Готова к обмену
+                                            </span>
+                                        )}
+                                        {card.isUsed && (
+                                            <span className="bg-gray-400 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                                Использована
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Дата использования */}
+                                    {card.usedAt && (
+                                        <span className="text-gray-300 text-xs">
+                                            Использована: {new Date(card.usedAt).toLocaleDateString('ru-RU')}
                                         </span>
                                     )}
                                 </div>
 
-                                {/* Дата использования */}
-                                {card.usedAt && (
-                                    <span className="text-gray-300 text-xs">
-                                        Использована: {new Date(card.usedAt).toLocaleDateString('ru-RU')}
-                                    </span>
-                                )}
-                            </div>
+                                {/* Сетка чашек */}
+                                <div className="grid grid-cols-3 gap-6 mb-8 justify-items-center">
+                                    {Array.from({ length: 6 }, (_, index) => (
+                                        <div
+                                            key={index}
+                                            className="rounded-full flex items-center justify-center overflow-hidden relative"
+                                            style={{
+                                                backgroundColor: "#F3F3F3",
+                                                width: "78px",
+                                                height: "78px"
+                                            }}
+                                        >
+                                            {index < card.cupsCount && (
+                                                <img
+                                                    src={cupImages[index]}
+                                                    alt={`Cup ${index + 1}`}
+                                                    width={78}
+                                                    height={78}
+                                                    className="object-cover"
+                                                    draggable={false}
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
 
-                            {/* Сетка чашек */}
-                            <div className="grid grid-cols-3 gap-6 mb-8 justify-items-center">
-                                {Array.from({ length: 6 }, (_, index) => (
-                                    <div
-                                        key={index}
-                                        className="rounded-full flex items-center justify-center overflow-hidden relative"
-                                        style={{
-                                            backgroundColor: "#F3F3F3",
-                                            width: "78px",
-                                            height: "78px"
-                                        }}
-                                    >
-                                        {index < card.cupsCount && (
-                                            <img
-                                                src={cupImages[index]}
-                                                alt={`Cup ${index + 1}`}
-                                                width={78}
-                                                height={78}
-                                                className="object-cover"
-                                            />
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Текст и кнопка */}
-                            <div className="text-center">
-                                {card.isActive && (
-                                    <p
-                                        className="text-white text-center text-base mb-2"
-                                        style={{
-                                            fontFamily: 'Roboto, sans-serif',
-                                            fontWeight: 400,
-                                            lineHeight: '1.2'
-                                        }}
-                                    >
-                                        {card.cupsCount === 6
-                                            ? 'Карточка заполнена! Получите бесплатный кофе!'
-                                            : `Получите 6-ой кофе в подарок${card.cupsCount > 0 ? ` (${card.cupsCount}/6)` : ''}`
-                                        }
-                                    </p>
-                                )}
-
-                                {card.isComplete && !card.isUsed && (
-                                    <>
+                                {/* Текст и кнопка */}
+                                <div className="text-center">
+                                    {card.isActive && (
                                         <p
-                                            className="text-white text-center text-base mb-4"
+                                            className="text-white text-center text-base mb-2"
                                             style={{
                                                 fontFamily: 'Roboto, sans-serif',
                                                 fontWeight: 400,
                                                 lineHeight: '1.2'
                                             }}
                                         >
-                                            🎉 Карточка готова! Получите бесплатный кофе!
+                                            {card.cupsCount === 6
+                                                ? 'Карточка заполнена! Получите бесплатный кофе!'
+                                                : `Получите 6-ой кофе в подарок${card.cupsCount > 0 ? ` (${card.cupsCount}/6)` : ''}`
+                                            }
                                         </p>
+                                    )}
 
-                                        {onClaimFreeCoffee && (
-                                            <button
-                                                onClick={() => onClaimFreeCoffee(card.id)}
-                                                className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-6 rounded-full transition-colors"
+                                    {card.isComplete && !card.isUsed && (
+                                        <>
+                                            <p
+                                                className="text-white text-center text-base"
+                                                style={{
+                                                    fontFamily: 'Roboto, sans-serif',
+                                                    fontWeight: 400,
+                                                    lineHeight: '1.2'
+                                                }}
                                             >
-                                                Получить бесплатный кофе
-                                            </button>
-                                        )}
-                                    </>
-                                )}
+                                                🎉 Карточка заполнена!
+                                            </p>
 
-                                {card.isUsed && (
-                                    <p
-                                        className="text-gray-300 text-center text-base"
-                                        style={{
-                                            fontFamily: 'Roboto, sans-serif',
-                                            fontWeight: 400,
-                                            lineHeight: '1.2'
-                                        }}
-                                    >
-                                        ✅ Бесплатный кофе получен
-                                    </p>
-                                )}
+                                            {onClaimFreeCoffee && (
+                                                <button
+                                                    onClick={() => onClaimFreeCoffee(card.id)}
+                                                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-6 rounded-full transition-colors"
+                                                >
+                                                    Получить бесплатный кофе
+                                                </button>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {card.isUsed && (
+                                        <p
+                                            className="text-gray-300 text-center text-base"
+                                            style={{
+                                                fontFamily: 'Roboto, sans-serif',
+                                                fontWeight: 400,
+                                                lineHeight: '1.2'
+                                            }}
+                                        >
+                                            Бесплатный кофе получен
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
 
             {/* Индикаторы точек */}
@@ -313,22 +412,12 @@ export function LoyaltyCard({ userData, onClaimFreeCoffee }: LoyaltyCardProps) {
 
             {/* Общая статистика */}
             {userData.availableFreeCoffees > 0 && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-center mx-4">
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-center mx-1">
                     <strong>
                         У вас {userData.availableFreeCoffees} доступных бесплатных кофе! ☕
                     </strong>
                 </div>
             )}
-
-            <style jsx>{`
-                .scrollbar-hide {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
-                }
-            `}</style>
         </div>
     );
 }

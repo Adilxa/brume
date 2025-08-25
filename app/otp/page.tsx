@@ -137,7 +137,7 @@ export default function OTPPage() {
                             lineHeight: '120%'
                         }}
                     >
-                        На Ваш номер отправлен SMS с<br />
+                        На ваш Email отправлен OTP с<br />
                         6-значным кодом
                     </p>
                 </div>
