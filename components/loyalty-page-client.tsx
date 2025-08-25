@@ -67,7 +67,7 @@ export function LoyaltyPageClient() {
                     />
                 </Link> */}
                 <div className="text-center">
-                    <Image src={Brume} alt="logo" className='mb-1' />
+                    <img src={'/images/Brume.svg'} alt="logo" className='mb-1' />
                     <p
                         className="text-xs text-gray-500"
                         style={{ fontFamily: 'Roboto, sans-serif', fontSize: "12px" }}

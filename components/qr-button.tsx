@@ -123,7 +123,7 @@ export function QRButton() {
                                     />
                                     {/* Логотип в центре QR кода */}
                                     <div className='bg-white p-2 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
-                                        <Image src={Brume} alt='logo' className='' />
+                                        <img src={'/images/Brume.svg'} alt='logo' className='' />
                                     </div>
                                 </div>
                             ) : userId ? (
